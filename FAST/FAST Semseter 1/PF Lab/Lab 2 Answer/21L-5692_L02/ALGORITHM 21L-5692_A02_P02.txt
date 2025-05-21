@@ -1,0 +1,7 @@
+CR X,Y,XLT,YLT,XRB,YRB
+IN X,Y,XLT,YLT,XRB,YRB
+IF (X>XLT AND X<XRB AND Y>YLT AND Y<YRT) THEN
+OUT “P lies inside the region”
+ELSE
+OUT “P lies outside the region”
+OUT “THE END”

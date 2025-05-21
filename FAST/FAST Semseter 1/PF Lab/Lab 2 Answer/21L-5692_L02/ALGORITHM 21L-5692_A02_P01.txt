@@ -1,0 +1,16 @@
+CR n,r,sum=0,p=1
+IN n
+IF (n < 100000) THEN
+OUT “NOT A SIX DIGIT NUMBER:TOO SMALL”
+ELSEIF (n > = 100000 AND n < = 999999)
+WHILE(n > 0)
+r = n MOD 10
+n = n / 10
+sum = sum + r
+p = p * r
+ENDWHILE
+ELSE
+OUT “NOT A SIX DIGIT NUMBER:TOO SMALL”
+ENDIF
+OUT sum AND p
+OUT “THE END”
