@@ -1,0 +1,39 @@
+Arif
+Lahore
+03008797654
+arif@nu.edu.pk
+FAST NUCES
+CS
+P
+Assistant Professor
+PF,OOP,DSA,DB
+4,4,4,4
+2
+6
+doctorate
+Arham
+Lahore
+03338797654
+arham@nu.edu.pk
+PU
+CS
+V
+Lecturer
+SE,AI,DS,OS
+4,4,4,4
+1
+4
+Masters
+Usman
+Karachi
+03114000986
+usman123@gmail.com
+DS
+CS
+V
+Assistant Professor
+SE,AO,DT,QS
+4,3,2,1
+2
+4
+post-doctorate
