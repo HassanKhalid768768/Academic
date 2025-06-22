@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CV Generator</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css">
+    <style>
+        /* CV container styling */
+        .cv-container {
+            border: 2px solid #000;
+            padding: 20px;
+            width: 60%;
+            background: #f8f9fa;
+            margin: 20px auto;
+            border-radius: 10px;
+        }
+
+        /* Header section of the CV */
+        .cv-header {
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        /* Overall page styling */
+        body {
+            background: linear-gradient(135deg, #00c9ff, #92fe9d);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Form label styling */
+        .form-label {
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        /* Title Styling */
+        h1.text-center {
+            font-size: 50px;
+            font-family: 'Arial Black', sans-serif;
+            color: #333;
+            text-transform: uppercase;
+        }
+
+        /* Progress bar styling */
+        .progress {
+            width: 100%;
+            height: 30px;
+        }
+
+        .progress-bar {
+            font-size: 16px;
+            line-height: 30px;
+        }
+    </style>
+</head>
+
+<body class="container mt-5">
+
+    <h1 class="text-center"><b>RESUME MAKER</b></h1>
+
+    <!-- Progress Bar -->
+    <div class="progress mb-4">
+        <div id="progressBar" class="progress-bar bg-danger text-white" style="width: 0%">0%</div>
+    </div>
+
+    <!-- CV Input Form -->
+    <form id="cvForm" class="row g-3">
+        <div class="col-md-6">
+            <label class="form-label">Full Name</label>
+            <input type="text" id="name" class="form-control" placeholder="Enter your full name" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Experience</label>
+            <input type="text" id="experience" class="form-control" placeholder="e.g., 3 years in software development"
+                required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">CGPA</label>
+            <input type="text" id="cgpa" class="form-control" placeholder="e.g., 3.8/4.0" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Education</label>
+            <input type="text" id="education" class="form-control" placeholder="e.g., BSc in Computer Science" required>
+        </div>
+        <div class="col-12">
+            <label class="form-label">About</label>
+            <textarea id="about" class="form-control" rows="3" placeholder="Write a short bio about yourself"
+                required></textarea>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Contact</label>
+            <input type="text" id="contact" class="form-control" placeholder="e.g., +123 456 7890" required>
+        </div>
+        <div class="col-md-6">
+            <label class="form-label">Address</label>
+            <input type="text" id="address" class="form-control" placeholder="Enter your address" required>
+        </div>
+        <div class="col-12">
+            <label class="form-label">Skills</label>
+            <div class="input-group">
+                <input type="text" id="skillInput" class="form-control" placeholder="Enter a skill">
+                <button type="button" class="btn btn-success" onclick="addSkill()">Add</button>
+            </div>
+            <ul id="skillsList" class="mt-2"></ul>
+        </div>
+        <div class="col-12 text-center">
+            <button type="button" class="btn btn-primary" onclick="generateCV()">Generate CV</button>
+        </div>
+    </form>
+
+    <!-- CV Output Section -->
+    <div id="cvOutput" class="cv-container mt-4" style="display: none;">
+        <!-- Name as Header -->
+        <div class="cv-header">
+            <i class="bi bi-person-circle"></i> <span id="cvNameText" style="font-size: 28px;"></span>
+        </div>
+        <hr>
+
+        <!-- Contact Information -->
+        <p><i class="bi bi-telephone-fill"></i> <strong> Contact: </strong> <span id="cvContact"></span></p>
+        <p><i class="bi bi-geo-alt-fill"></i> <strong> Address: </strong> <span id="cvAddress"></span></p>
+        <hr>
+
+        <!-- About Section -->
+        <h4><i class="bi bi-file-earmark-text-fill"></i> About</h4>
+        <p id="cvAbout"></p>
+        <hr>
+
+        <!-- Education -->
+        <h4><i class="bi bi-mortarboard-fill"></i> Education</h4>
+        <p><strong> Degree: </strong> <span id="cvEducation"></span></p>
+        <p><strong> CGPA: </strong> <span id="cvCgpa"></span></p>
+        <hr>
+
+        <!-- Work Experience -->
+        <h4><i class="bi bi-briefcase-fill"></i> Work Experience</h4>
+        <p id="cvExperience"></p>
+        <hr>
+
+        <!-- Skills -->
+        <h4><i class="bi bi-lightbulb-fill"></i> Skills</h4>
+        <ul id="cvSkillsList"></ul>
+    </div>
+
+    <script>
+        /* Skills list storage */
+        let skillsArray = [];
+
+        /* Function to add skills dynamically */
+        function addSkill() {
+            let skillInput = document.getElementById("skillInput");
+            let skill = skillInput.value.trim();
+
+            if (skill) {
+                skillsArray.push(skill);
+                updateSkillsList();
+                skillInput.value = "";  // Clear input after adding
+            }
+            updateProgress();
+        }
+
+        /* Function to update the displayed skills list */
+        function updateSkillsList() {
+            let skillsList = document.getElementById("skillsList");
+            skillsList.innerHTML = "";
+
+            skillsArray.forEach((skill, index) => {
+                let li = document.createElement("li");
+                li.textContent = skill;
+
+                let removeBtn = document.createElement("button");
+                removeBtn.textContent = "Remove";
+                removeBtn.classList.add("btn", "btn-danger", "btn-sm", "ms-2");
+                removeBtn.onclick = () => {
+                    skillsArray.splice(index, 1);
+                    updateSkillsList();
+                    updateProgress();
+                };
+
+                li.appendChild(removeBtn);
+                skillsList.appendChild(li);
+            });
+        }
+
+        /* Function to update progress bar dynamically */
+        function updateProgress() {
+            let fields = [
+                "name", "experience", "cgpa", "education", "about", "contact", "address"
+            ];
+            let filledFields = fields.filter(id => document.getElementById(id).value.trim() !== "").length;
+            let skillsCount = skillsArray.length > 0 ? 1 : 0; // Count skills as one field when added
+            let totalFields = fields.length + 1; // Including skills
+            let progress = Math.round(((filledFields + skillsCount) / totalFields) * 100);
+
+            let progressBar = document.getElementById("progressBar");
+            progressBar.style.width = progress + "%";
+            progressBar.textContent = progress + "%";
+
+            // Change color based on progress
+            if (progress < 40) {
+                progressBar.className = "progress-bar bg-danger text-white";
+            } else if (progress < 70) {
+                progressBar.className = "progress-bar bg-warning text-dark";
+            } else {
+                progressBar.className = "progress-bar bg-success text-white";
+            }
+        }
+
+        /* Attach event listeners to all input fields for progress tracking */
+        document.querySelectorAll("input, textarea").forEach(input => {
+            input.addEventListener("input", updateProgress);
+        });
+
+        function generateCV() {
+            let fields = ["name", "experience", "cgpa", "education", "about", "contact", "address"];
+            let missingFields = fields.filter(id => document.getElementById(id).value.trim() === "");
+
+            if (missingFields.length > 0) {
+                Swal.fire({
+                    icon: "error",
+                    title: "Incomplete Form",
+                    text: "Please fill all fields before generating the CV.",
+                    confirmButtonColor: "#d33"
+                });
+                return;
+            }
+
+            if (skillsArray.length === 0) {
+                Swal.fire({
+                    icon: "warning",
+                    title: "Add a Skill",
+                    text: "Please add at least one skill before generating the CV.",
+                    confirmButtonColor: "#f39c12"
+                });
+                return;
+            }
+
+            document.getElementById("cvNameText").innerText = document.getElementById("name").value.trim();
+            document.getElementById("cvExperience").innerText = document.getElementById("experience").value.trim();
+            document.getElementById("cvCgpa").innerText = document.getElementById("cgpa").value.trim();
+            document.getElementById("cvEducation").innerText = document.getElementById("education").value.trim();
+            document.getElementById("cvAbout").innerText = document.getElementById("about").value.trim();
+            document.getElementById("cvContact").innerText = document.getElementById("contact").value.trim();
+            document.getElementById("cvAddress").innerText = document.getElementById("address").value.trim();
+
+            // Populate skills as a list
+            let skillsListElement = document.getElementById("cvSkillsList");
+            skillsListElement.innerHTML = "";
+            skillsArray.forEach(skill => {
+                let li = document.createElement("li");
+                li.textContent = skill;
+                skillsListElement.appendChild(li);
+            });
+
+            document.getElementById("cvOutput").style.display = "block";
+
+            Swal.fire({
+                icon: "success",
+                title: "Success!",
+                text: "Your CV has been generated successfully.",
+                confirmButtonColor: "#28a745"
+            });
+        }
+    </script>
+</body>
+
+</html>
