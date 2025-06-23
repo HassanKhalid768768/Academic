@@ -1,0 +1,6 @@
+Hello,
+This is a sample text.
+Producer and consumer processes
+will work together to transfer this data.
+$
+

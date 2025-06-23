@@ -1,0 +1,7 @@
+# Makefile
+main: main.c
+    gcc 21L-5692.c -o 21L-5692
+
+clean:
+    rm main
+
