@@ -1,0 +1,134 @@
+-- Question 1
+
+create table Student(
+RollNum varchar(7),
+Name varchar(25),
+Gender varchar(6),
+Phone varchar(12)
+);
+
+
+create table Attendance(
+RollNum varchar(7),
+Date date,
+Status varchar(1),
+ClassVenue char(1)
+);
+
+create table ClassVenue(
+ID char(1),
+Building varchar(25),
+RoomNum char(1),
+Teacher varchar(25)
+);
+
+create table Teacher(
+Name varchar(25),
+Designation varchar(25),
+Department varchar(25)
+);
+
+
+
+
+
+insert into Student values('L164123','Ali Ahmed','Male','0333-3333333');
+insert into Student values('L164124','Rafia Ahmed','Female','0333-3456789');
+insert into Student values('L164125','Basit Junaid','Male','0345-3243567');
+
+
+insert into Attendance values('L164123','2-22-2016','P',2);
+insert into Attendance values('L164124','2-23-2016','A',1);
+insert into Attendance values('L164125','3-4-2016','P',2);
+
+insert into ClassVenue values(1,'CS',2,'Sarim Baig');
+insert into ClassVenue values(2,'Civil',7,'Bismillah Jan');
+
+insert into Teacher values('Sarim Baig','Assistant Prof.','Computer Science');
+insert into Teacher values('Bismillah Jan','Lecturer','Civil Eng');
+insert into Teacher values('Kashif zafar','Professor','Electrical Eng.');
+
+
+-- Question 2
+
+ALTER TABLE Student
+ALTER COLUMN RollNum varchar(7) NOT NULL;
+
+ALTER TABLE Attendance
+ALTER COLUMN RollNum varchar(7) NOT NULL;
+
+ALTER TABLE ClassVenue
+ALTER COLUMN ID char(1) NOT NULL;
+
+ALTER TABLE Teacher
+ALTER COLUMN Name varchar(25) NOT NULL;
+
+
+
+
+
+ALTER TABLE Student
+ADD PRIMARY KEY (RollNum);
+
+ALTER TABLE Attendance
+ADD PRIMARY KEY (RollNum);
+
+ALTER TABLE ClassVenue
+ADD PRIMARY KEY (ID);
+
+ALTER TABLE Teacher
+ADD PRIMARY KEY (Name);
+
+-- Question 3
+
+ALTER TABLE Student
+ADD FOREIGN KEY (RollNum) REFERENCES Attendance(RollNum);
+
+ALTER TABLE Attendance
+ADD FOREIGN KEY (ClassVenue) REFERENCES ClassVenue(ID);
+
+ALTER TABLE ClassVenue
+ADD FOREIGN KEY (Teacher) REFERENCES Teacher(Name);
+
+
+-- Question 4
+
+ALTER TABLE Student
+ADD warningcount char(1);
+
+ALTER TABLE Student
+DROP COLUMN Phone;
+
+
+-- Question 5
+
+insert into Student values('L162334','Fozan Shahid','Male','3.2');
+
+insert into ClassVenue values(3,'CS',5,'Ali');
+
+update Teacher 
+set Name = 'Dr. Kashif zafar' 
+where Name= 'Kashif zafar';
+
+DELETE from Student
+where RollNum='L162334';
+
+DELETE from Student 
+where RollNum='L164123';
+-- Its a not null cell and we cannot do that we need to delete the non null condition
+
+delete from Attendance 
+where Status='A'and RollNum = 'L164124';
+
+
+-- Question 6
+
+ALTER TABLE Teacher
+ADD UNIQUE (Name);
+
+ALTER TABLE Student
+ADD CHECK (Gender in ('Male','Female'));
+
+ALTER TABLE Attendance
+ADD CHECK (Status in ('A','P'));
+

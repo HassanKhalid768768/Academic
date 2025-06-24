@@ -1,0 +1,215 @@
+CREATE TABLE [dbo].[Items](
+	[ItemNo] [int] NOT NULL,
+	[Name] [varchar](10) NULL,
+	[Price] [int] NULL,
+	[Quantity in Store] [int] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ItemNo] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+INSERT [dbo].[Items] ([ItemNo], [Name], [Price], [Quantity in Store]) VALUES (100, N'A', 1000, 100)
+INSERT [dbo].[Items] ([ItemNo], [Name], [Price], [Quantity in Store]) VALUES (200, N'B', 2000, 50)
+INSERT [dbo].[Items] ([ItemNo], [Name], [Price], [Quantity in Store]) VALUES (300, N'C', 3000, 60)
+INSERT [dbo].[Items] ([ItemNo], [Name], [Price], [Quantity in Store]) VALUES (400, N'D', 6000, 400)
+
+CREATE TABLE [dbo].[Customers](
+	[CustomerNo] [varchar](2) NOT NULL,
+	[Name] [varchar](30) NULL,
+	[City] [varchar](3) NULL,
+	[Phone] [varchar](11) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[CustomerNo] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+INSERT [dbo].[Customers] ([CustomerNo], [Name], [City], [Phone]) VALUES (N'C1', N'AHMED ALI', N'LHR', N'111111')
+INSERT [dbo].[Customers] ([CustomerNo], [Name], [City], [Phone]) VALUES (N'C2', N'ALI', N'LHR', N'222222')
+INSERT [dbo].[Customers] ([CustomerNo], [Name], [City], [Phone]) VALUES (N'C3', N'AYESHA', N'LHR', N'333333')
+INSERT [dbo].[Customers] ([CustomerNo], [Name], [City], [Phone]) VALUES (N'C4', N'BILAL', N'KHI', N'444444')
+INSERT [dbo].[Customers] ([CustomerNo], [Name], [City], [Phone]) VALUES (N'C5', N'SADAF', N'KHI', N'555555')
+INSERT [dbo].[Customers] ([CustomerNo], [Name], [City], [Phone]) VALUES (N'C6', N'FARAH', N'ISL', NULL)
+
+CREATE TABLE [dbo].[Order](
+	[OrderNo] [int] NOT NULL,
+	[CustomerNo] [varchar](2) NULL,
+	[Date] [date] NULL,
+	[Total_Items_Ordered] [int] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[OrderNo] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+INSERT [dbo].[Order] ([OrderNo], [CustomerNo], [Date], [Total_Items_Ordered]) VALUES (1, N'C1', CAST(0x7F360B00 AS Date), 30)
+INSERT [dbo].[Order] ([OrderNo], [CustomerNo], [Date], [Total_Items_Ordered]) VALUES (2, N'C3', CAST(0x2A3C0B00 AS Date), 5)
+INSERT [dbo].[Order] ([OrderNo], [CustomerNo], [Date], [Total_Items_Ordered]) VALUES (3, N'C3', CAST(0x493C0B00 AS Date), 20)
+INSERT [dbo].[Order] ([OrderNo], [CustomerNo], [Date], [Total_Items_Ordered]) VALUES (4, N'C4', CAST(0x4A3C0B00 AS Date), 15)
+
+CREATE TABLE [dbo].[OrderDetails](
+	[OrderNo] [int] NOT NULL,
+	[ItemNo] [int] NOT NULL,
+	[Quantity] [int] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[OrderNo] ASC,
+	[ItemNo] ASC
+)WITH (PAD_INDEX  = OFF, STATISTICS_NORECOMPUTE  = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS  = ON, ALLOW_PAGE_LOCKS  = ON) ON [PRIMARY]
+) ON [PRIMARY]
+
+INSERT [dbo].[OrderDetails] ([OrderNo], [ItemNo], [Quantity]) VALUES (1, 200, 20)
+INSERT [dbo].[OrderDetails] ([OrderNo], [ItemNo], [Quantity]) VALUES (1, 400, 10)
+INSERT [dbo].[OrderDetails] ([OrderNo], [ItemNo], [Quantity]) VALUES (2, 200, 5)
+INSERT [dbo].[OrderDetails] ([OrderNo], [ItemNo], [Quantity]) VALUES (3, 200, 60)
+
+ALTER TABLE [dbo].[OrderDetails]  ADD FOREIGN KEY([ItemNo])
+REFERENCES [dbo].[Items] ([ItemNo]) on delete cascade on update cascade
+
+ALTER TABLE [dbo].[OrderDetails]   ADD FOREIGN KEY([OrderNo]) 
+REFERENCES [dbo].[Order] ([OrderNo]) on delete cascade on update cascade
+
+SELECT * FROM [Order]
+SELECT * FROM OrderDetails
+SELECT * FROM Items
+SELECT * FROM Customers
+
+-- Question 1
+
+GO
+
+CREATE TRIGGER [dbo].[PreventCustomerDeletion]
+ON [dbo].[Customers]
+INSTEAD OF DELETE
+AS
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM [dbo].[Order] WHERE [CustomerNo] IN (SELECT [CustomerNo] FROM DELETED)
+    )
+    BEGIN
+        PRINT 'Cannot delete customer who has made an order.'
+    END
+    ELSE
+    BEGIN
+        DELETE [dbo].[Customers] WHERE [CustomerNo] IN (SELECT [CustomerNo] FROM DELETED)
+    END
+END
+
+-- Question 2
+
+GO
+
+CREATE TRIGGER [dbo].[CheckQuantityInStore]
+ON [dbo].[OrderDetails]
+INSTEAD OF INSERT
+AS
+BEGIN
+    DECLARE @ItemNo INT
+    DECLARE @Quantity INT
+    SELECT @ItemNo = [ItemNo], @Quantity = [Quantity] FROM INSERTED
+    
+    DECLARE @QuantityInStore INT
+    SELECT @QuantityInStore = [Quantity in Store] FROM [dbo].[Items] WHERE [ItemNo] = @ItemNo
+    
+    IF @Quantity <= @QuantityInStore
+    BEGIN
+        INSERT [dbo].[OrderDetails] ([OrderNo], [ItemNo], [Quantity]) VALUES ((SELECT [OrderNo] FROM INSERTED), @ItemNo, @Quantity)
+    END
+    ELSE
+    BEGIN
+        PRINT 'The required quantity is not available'
+    END
+END
+
+-- Question 3
+
+GO
+
+CREATE TRIGGER [dbo].[CheckUpdatedQuantityInStore]
+ON [dbo].[OrderDetails]
+AFTER UPDATE
+AS
+BEGIN
+    DECLARE @ItemNo INT
+    DECLARE @Quantity INT
+    SELECT @ItemNo = [ItemNo], @Quantity = [Quantity] FROM INSERTED
+    
+    DECLARE @QuantityInStore INT
+    SELECT @QuantityInStore = [Quantity in Store] FROM [dbo].[Items] WHERE [ItemNo] = @ItemNo
+    
+    IF @Quantity > @QuantityInStore
+    BEGIN
+        PRINT 'The updated quantity is not available'
+        ROLLBACK TRANSACTION
+    END
+END
+
+-- Question 4
+
+GO
+
+CREATE TRIGGER [dbo].[PreventLargeQtyDeletion]
+ON [dbo].[Items]
+AFTER DELETE
+AS
+BEGIN
+  IF EXISTS (SELECT * FROM [deleted] WHERE [Quantity in Store] > 100)
+  BEGIN
+    RAISERROR ('Cannot delete item with quantity in store more than 100.', 16, 1)
+    ROLLBACK TRANSACTION
+  END
+END
+
+-- Question 5
+
+GO
+
+CREATE TRIGGER [dbo].[CheckOrderDate]
+ON [dbo].[Order]
+INSTEAD OF INSERT
+AS
+BEGIN
+  SET NOCOUNT ON
+  DECLARE @currentDate DATE
+  SET @currentDate = GETDATE()
+  INSERT INTO [dbo].[Order] ([OrderNo], [CustomerNo], [Date], [Total_Items_Ordered])
+  SELECT [OrderNo], [CustomerNo], CASE WHEN [Date] = @currentDate THEN [Date] ELSE @currentDate END, [Total_Items_Ordered] FROM inserted
+END
+
+-- Question 6
+
+GO
+
+CREATE TRIGGER [dbo].[PreventNullCustomerInsert]
+ON [dbo].[Customers]
+AFTER INSERT
+AS
+BEGIN
+  IF EXISTS (SELECT * FROM [inserted] WHERE [Name] IS NULL OR [City] IS NULL OR [Phone] IS NULL)
+  BEGIN
+    RAISERROR ('Cannot insert customer with null fields.', 16, 1)
+    ROLLBACK TRANSACTION
+  END
+END
+
+-- Question 7
+
+GO
+
+CREATE PROCEDURE [dbo].[CustomerSignup]
+  @CustomerNo varchar(2),
+  @Name varchar(30),
+  @City varchar(3),
+  @Phone varchar(11)
+AS
+BEGIN
+  IF (@CustomerNo IS NULL OR @Name IS NULL OR @City IS NULL OR @Phone IS NULL)
+  BEGIN
+    RAISERROR ('Cannot insert customer with null fields.', 16, 1)
+    RETURN
+  END
+  
+  INSERT INTO [dbo].[Customers] ([CustomerNo], [Name], [City], [Phone])
+  VALUES (@CustomerNo, @Name, @City, @Phone)
+END
